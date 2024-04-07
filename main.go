@@ -4,6 +4,7 @@ import (
     "os"
     "net/http"
     "log"
+    "fmt"
     "github.com/gin-gonic/gin"
     "golang.org/x/oauth2"
     "golang.org/x/oauth2/google"
@@ -19,6 +20,13 @@ func main() {
 }
 
 func upload(c *gin.Context) {
+    service := getDriveService()
+    files, _ := os.ReadDir("./images")
+
+    for _, file := range files {
+        fmt.Println(file.Name())
+        service.Files.Create(&drive.File{Name: file.Name()})
+    }
     c.IndentedJSON(http.StatusOK, "upload starting")
 }
 
@@ -26,19 +34,19 @@ func getDriveService() *drive.Service {
     ctx := context.Background()
     b, err := os.ReadFile("credentials.json")
     if err != nil {
-            log.Fatalf("Unable to read client secret file: %v", err)
+        log.Fatalf("Unable to read client secret file: %v", err)
     }
 
     // If modifying these scopes, delete your previously saved token.json.
     config, err := google.ConfigFromJSON(b, "https://www.googleapis.com/auth/drive.install")
     if err != nil {
-            log.Fatalf("Unable to parse client secret file to config: %v", err)
+        log.Fatalf("Unable to parse client secret file to config: %v", err)
     }
     client := getClient(config)
 
     srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
     if err != nil {
-            log.Fatalf("Unable to retrieve Drive client: %v", err)
+        log.Fatalf("Unable to retrieve Drive client: %v", err)
     }
 
     return srv
