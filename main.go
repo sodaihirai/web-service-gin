@@ -26,15 +26,20 @@ func upload(c *gin.Context) {
 
     for _, file := range files {
         fmt.Println(file.Name())
-        f, _ := os.Open("./images/" + file.Name())
-        _, err := service.Files.Create(
-            &drive.File{Name: file.Name(), Parents: []string{"1MKf6wfl1exlSR6aa34vnjdkqsYuU8_PM"}}).Media(f).Do()
-
-        if err != nil {
-            log.Fatalf("Unable to read client secret file: %v", err)
-        }
+        file_name := file.Name()
+        f, _ := os.Open("./images/" + file_name)
+        go upload_file(service, f)
     }
     c.IndentedJSON(http.StatusOK, "upload starting")
+}
+
+func upload_file(service *drive.Service, file *os.File) {
+    _, err := service.Files.Create(
+        &drive.File{Name: file.Name(), Parents: []string{"1MKf6wfl1exlSR6aa34vnjdkqsYuU8_PM"}}).Media(file).Do()
+
+    if err != nil {
+        log.Fatalf("Unable to read client secret file: %v", err)
+    }
 }
 
 func getDriveService() *drive.Service {
